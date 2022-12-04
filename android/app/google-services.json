@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "527317256858",
+    "firebase_url": "https://indoormaps-43bcc-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "indoormaps-43bcc",
+    "storage_bucket": "indoormaps-43bcc.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:527317256858:android:5b4a74da69c6a35cb52d23",
+        "android_client_info": {
+          "package_name": "com.example.indoor_localization_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "527317256858-1thcc2s5n5ecojqtr48ms8mb9hch3q8h.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD_PXEadllqpXyy1QCPD8wQ7N-MXRghGWo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "527317256858-1thcc2s5n5ecojqtr48ms8mb9hch3q8h.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
