@@ -15,13 +15,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.9.0"
-  beacons_plugin:
-    dependency: "direct main"
-    description:
-      name: beacons_plugin
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.8"
   boolean_selector:
     dependency: transitive
     description:
@@ -78,6 +71,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.5"
+  data:
+    dependency: transitive
+    description:
+      name: data
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.10.0"
+  epitaph_ips:
+    dependency: "direct main"
+    description:
+      name: epitaph_ips
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.1"
   fake_async:
     dependency: transitive
     description:
@@ -160,6 +167,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.1"
+  flutter_screenutil:
+    dependency: "direct main"
+    description:
+      name: flutter_screenutil
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "5.6.0"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -219,6 +233,27 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.8.0"
+  ml_linalg:
+    dependency: transitive
+    description:
+      name: ml_linalg
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "13.10.1"
+  more:
+    dependency: transitive
+    description:
+      name: more
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.8.5"
+  nested:
+    dependency: transitive
+    description:
+      name: nested
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.0"
   path:
     dependency: transitive
     description:
@@ -268,6 +303,20 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.2.4"
+  provider:
+    dependency: "direct main"
+    description:
+      name: provider
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "6.0.4"
+  quiver:
+    dependency: transitive
+    description:
+      name: quiver
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.1.0"
   shared_preferences:
     dependency: "direct main"
     description:

@@ -68,18 +68,6 @@ class _MyHomePageState extends State<MyHomePage> {
                                 color: Theme.of(context).primaryColor,
                                 child: TextButton(
                                   child: const Text(
-                                    'For map creators',
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                  onPressed: () {
-                                    Navigator.pushNamed(
-                                        context, '/for-creators');
-                                  },
-                                )),
-                            Container(
-                                color: Theme.of(context).primaryColor,
-                                child: TextButton(
-                                  child: const Text(
                                     'Map',
                                     style: TextStyle(color: Colors.white),
                                   ),

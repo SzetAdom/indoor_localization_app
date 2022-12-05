@@ -25,22 +25,14 @@ class _MapPageState extends State<MapPage> {
     try {
       var res = await flutterBeacon.initializeAndCheckScanning;
       log(res.toString());
-      var identifiers = await _getBeaconIdentifiers();
 
-      for (var identifier in identifiers) {
-        regions.add(Region(identifier: 'com.beacon', proximityUUID: null));
-      }
+      regions.add(Region(identifier: 'com.beacon', proximityUUID: null));
+
       // regions.add(Region(identifier: 'com.beacon'));
       log('init done');
     } on PlatformException {
       log('something went wrong');
     }
-  }
-
-  Future<List<String>> _getBeaconIdentifiers() async {
-    List<String> beaconIdentifiers = ['b9407f30-f5f8-466e-aff9-25556b57feeb'];
-
-    return beaconIdentifiers;
   }
 
   void startRanging() {
@@ -59,7 +51,6 @@ class _MapPageState extends State<MapPage> {
       setState(() {
         beacons = map;
       });
-      setState(() {});
     });
   }
 
@@ -142,28 +133,6 @@ class _MapPageState extends State<MapPage> {
                     ),
                   ),
                 ),
-                // GestureDetector(
-                //   onTap: () => startMonitoring(),
-                //   child: Container(
-                //     margin: const EdgeInsets.all(15),
-                //     color: Colors.amber,
-                //     height: 100,
-                //     child: const Center(
-                //       child: Text('Start monitoring beacons'),
-                //     ),
-                //   ),
-                // ),
-                // GestureDetector(
-                //   onTap: () => startMonitoring(),
-                //   child: Container(
-                //     margin: const EdgeInsets.all(15),
-                //     color: Colors.amber,
-                //     height: 100,
-                //     child: const Center(
-                //       child: Text('Stop monitoring beacons'),
-                //     ),
-                //   ),
-                // ),
               ],
             );
           }),
