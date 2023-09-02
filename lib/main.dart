@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
       ),
       home: const MyHomePage(title: 'Home'),
       debugShowCheckedModeBanner: false,
-      routes: appRoutes,
+      routes: appRoutes, 
     );
   }
 }

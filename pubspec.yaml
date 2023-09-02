@@ -42,6 +42,10 @@ dependencies:
   provider: ^6.0.2
   flutter_beacon: ^0.5.1
   epitaph_ips: ^0.0.1
+  ml_linalg: ^13.7.0
+  data: ^0.10.0
+  vector_math: ^2.1.1
+  matrix_gesture_detector: ^0.2.0-nullsafety.1
 
 dev_dependencies:
   flutter_test:
