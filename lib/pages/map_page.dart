@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:indoor_localization_app/controller/beacon_controller.dart';
+import 'package:indoor_localization_app/controller/beacon_controller_old.dart';
 import 'package:indoor_localization_app/pages/map_view_widget.dart';
 import 'package:provider/provider.dart';
 
@@ -13,7 +13,7 @@ class MapPage extends StatefulWidget {
 }
 
 class _MapPageState extends State<MapPage> {
-  late BeaconController _beaconController;
+  late BeaconControllerOld _beaconController;
   late Future _future;
   Future<void> loadMap() async {
     _beaconController.init();
@@ -21,7 +21,7 @@ class _MapPageState extends State<MapPage> {
 
   @override
   void initState() {
-    _beaconController = BeaconController();
+    _beaconController = BeaconControllerOld();
     _future = loadMap();
     super.initState();
   }
@@ -40,9 +40,9 @@ class _MapPageState extends State<MapPage> {
         appBar: AppBar(
           title: const Text('Map'),
         ),
-        body: ChangeNotifierProvider<BeaconController>(
+        body: ChangeNotifierProvider<BeaconControllerOld>(
           create: (context) => _beaconController,
-          child: Consumer<BeaconController>(
+          child: Consumer<BeaconControllerOld>(
             builder: ((context, value, child) => FutureBuilder(
                 future: _future,
                 builder: (context, snapshot) {

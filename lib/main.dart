@@ -1,16 +1,13 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:indoor_localization_app/firebase_options.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:indoor_localization_app/routes.dart';
-import 'package:indoor_localization_app/utils/authentication.dart';
-import 'package:indoor_localization_app/widgets/auth_dialog.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+
   runApp(const MyApp());
 }
 
@@ -25,7 +22,7 @@ class MyApp extends StatelessWidget {
       ),
       home: const MyHomePage(title: 'Home'),
       debugShowCheckedModeBanner: false,
-      routes: appRoutes, 
+      routes: appRoutes,
     );
   }
 }
@@ -40,48 +37,111 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  late StreamSubscription bluetoothState;
+
+  bool bluetoothEnabled = false;
+
+  Future<bool> askForPermissions() async {
+    PermissionStatus permissionStatus = await Permission.bluetooth.status;
+    if (permissionStatus.isDenied) {
+      await Permission.bluetooth.request();
+    }
+
+    permissionStatus = await Permission.bluetoothScan.status;
+
+    if (permissionStatus.isDenied) {
+      await Permission.bluetoothScan.request();
+    }
+
+    permissionStatus = await Permission.location.status;
+
+    if (permissionStatus.isDenied) {
+      await Permission.location.request();
+    }
+
+    //check if bluetooth is enabled with FlutterBluePlus.adapterState
+
+    bluetoothState = FlutterBluePlus.adapterState.listen((state) {
+      if (state == BluetoothAdapterState.off) {
+        setState(() {
+          bluetoothEnabled = false;
+        });
+      } else if (state == BluetoothAdapterState.on) {
+        setState(() {
+          bluetoothEnabled = true;
+        });
+      }
+    });
+
+    if (!await Permission.bluetooth.isGranted ||
+        !await Permission.bluetoothScan.isGranted ||
+        !await Permission.location.isGranted) {
+      return false;
+    }
+    return true;
+  }
+
+  late Future _future;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _future = askForPermissions();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (context, snapshot) {
-          return Scaffold(
-              appBar: AppBar(
-                title: Text(widget.title),
-                actions: [
-                  if (snapshot.hasData)
-                    IconButton(
-                      onPressed: () {
-                        signOut();
-                      },
-                      icon: const Icon(Icons.exit_to_app),
-                    ),
-                ],
-              ),
-              body: snapshot.hasData
-                  ? SizedBox.expand(
-                      child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Container(
-                                color: Theme.of(context).primaryColor,
-                                child: TextButton(
-                                  child: const Text(
-                                    'Map',
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                  onPressed: () {
-                                    Navigator.pushNamed(context, '/map');
-                                  },
-                                )),
-                          ]),
-                    )
-                  : const SizedBox.expand(
-                      child: Center(
-                        child: AuthDialog(),
-                      ),
-                    ));
-        });
+    return Scaffold(
+        appBar: AppBar(
+          title: Text(widget.title),
+        ),
+        body: FutureBuilder(
+            future: _future,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+
+              if (snapshot.hasError ||
+                  (!snapshot.hasData && snapshot.data as bool == false)) {
+                return const Center(
+                  child: Text(
+                    'Kérjük engedélyezze a bluetooth és a helymeghatározás használatát az alkalmazás számára!',
+                    textAlign: TextAlign.center,
+                  ),
+                );
+              }
+
+              if (!bluetoothEnabled) {
+                return const Center(
+                  child: Text(
+                    'Kérjük kapcsolja be a bluetooth-ot!',
+                    textAlign: TextAlign.center,
+                  ),
+                );
+              }
+
+              return SizedBox.expand(
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                          color: Theme.of(context).primaryColor,
+                          child: TextButton(
+                            child: const Text(
+                              'Map',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            onPressed: () {
+                              Navigator.pushNamed(context, '/map');
+                            },
+                          )),
+                    ]),
+              );
+            }));
   }
 }
