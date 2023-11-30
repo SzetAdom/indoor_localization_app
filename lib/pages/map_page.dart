@@ -22,11 +22,14 @@ class _MapPageState extends State<MapPage> {
   void initState() {
     super.initState();
     controller = MapController();
-    future = controller.loadMap();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (controller.map == null) {
+      var args = ModalRoute.of(context)!.settings.arguments as String;
+      future = controller.loadMap(args);
+    }
     return ChangeNotifierProvider<MapController>(
       create: (context) => controller,
       child: Consumer<MapController>(builder: (context, value, child) {
@@ -38,8 +41,7 @@ class _MapPageState extends State<MapPage> {
               future: future,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.done) {
-                  if (!snapshot.hasData ||
-                      (snapshot.hasData && snapshot.data == false)) {
+                  if (controller.map == null) {
                     return const Text('Hiba történt betöltés közben');
                   }
                   return MatrixGestureDetector(
@@ -60,13 +62,13 @@ class _MapPageState extends State<MapPage> {
                                   clipBehavior: Clip.hardEdge,
                                   child: ConstrainedBox(
                                     constraints: BoxConstraints(
-                                      maxWidth: controller.map.width,
-                                      maxHeight: controller.map.height,
+                                      maxWidth: controller.map!.width,
+                                      maxHeight: controller.map!.height,
                                     ),
                                     child: ConstrainedBox(
                                       constraints: BoxConstraints(
-                                        minWidth: controller.map.width,
-                                        minHeight: controller.map.height,
+                                        minWidth: controller.map!.width,
+                                        minHeight: controller.map!.height,
                                       ),
                                       child: LayoutBuilder(
                                           builder: (context, constrains) {
@@ -74,7 +76,7 @@ class _MapPageState extends State<MapPage> {
                                             constrains.biggest;
                                         return CustomPaint(
                                           painter: MapEditorPainter(
-                                            map: controller.map,
+                                            map: controller.map!,
                                             canvasOffset:
                                                 controller.canvasOffset,
                                             gridStep: controller.gridStep,

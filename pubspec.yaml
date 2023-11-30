@@ -48,6 +48,8 @@ dependencies:
   beacons_plugin: ^2.0.8
   json_annotation: ^4.8.1
   file_picker: ^6.1.1
+  path_provider: ^2.1.1
+  fluttertoast: ^8.2.4
 
 dev_dependencies:
   flutter_test:

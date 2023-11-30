@@ -1,35 +1,22 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:indoor_localization_app/map/map_model.dart';
 import 'package:vector_math/vector_math_64.dart' as vector;
 
 class MapController extends ChangeNotifier {
-  late MapModel map;
+  MapModel? map;
 
-  Future<bool> loadMap() async {
-    // var json = await openFile();
-    // setMap(json);
-    map = MapModel(id: '0', name: 'test', objects: []);
-    return true;
-  }
-
-  Future<String?> openFile() async {
-    var filePickerResult = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['json'],
-      allowMultiple: false,
-    );
-
-    if (filePickerResult == null) return null;
-
-    File file = File(filePickerResult.files.first.path!);
-
-    var json = await file.readAsString();
-
-    return json;
+  Future<bool> loadMap(String path) async {
+    try {
+      var jsonString = await File(path).readAsString();
+      setMap(jsonString);
+      return true;
+    } catch (e) {
+      print(e);
+    }
+    return false;
   }
 
   void setMap(String json) {

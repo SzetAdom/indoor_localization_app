@@ -9,11 +9,12 @@ class MapObjectPointModel {
 
   factory MapObjectPointModel.fromJson(Map<String, dynamic> json) =>
       MapObjectPointModel(
-        point: Offset(json['x'], json['y']),
+        point: Offset(double.parse(json['x'].toString()),
+            double.parse(json['y'].toString())),
       );
 
   Map<String, dynamic> toJson() => {
-        'x': point.dx,
-        'y': point.dy,
+        'x': point.dx.toDouble(),
+        'y': point.dy.toDouble(),
       };
 }

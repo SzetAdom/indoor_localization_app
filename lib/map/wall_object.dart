@@ -6,9 +6,6 @@ import 'package:indoor_localization_app/map/map_object_model.dart';
 import 'package:indoor_localization_app/map/wall_object_point_model.dart';
 import 'package:json_annotation/json_annotation.dart';
 
-part 'wall_object.g.dart';
-
-@JsonSerializable()
 class WallObject extends MapObjectModel {
   WallObject({
     required String id,
@@ -27,11 +24,27 @@ class WallObject extends MapObjectModel {
 
   List<DoorModel> doors = [];
 
-  factory WallObject.fromJson(Map<String, dynamic> json) =>
-      _$WallObjectFromJson(json);
+  factory WallObject.fromJson(Map<String, dynamic> json) {
+    List<WallObjectPointModel> points = [];
+    for (var point in json['pointsRaw']) {
+      points.add(WallObjectPointModel.fromJson(point));
+    }
 
-  @override
-  Map<String, dynamic> toJson() => _$WallObjectToJson(this);
+    List<DoorModel> doors = [];
+    for (var door in json['doors']) {
+      doors.add(DoorModel.fromJson(door));
+      print('door: $door');
+    }
+
+    return WallObject(
+      id: json['id'] ?? UniqueKey().toString(),
+      name: json['name'],
+      icon: json['icon'],
+      description: json['description'],
+      pointsRaw: points,
+      doors: doors,
+    );
+  }
 
   @override
   void draw(Canvas canvas, Size size, {bool selected = false}) {
@@ -120,7 +133,7 @@ class WallObject extends MapObjectModel {
 
     for (var door in doors) {
       final firstPoint = pointsRaw[door.firstPointIndex];
-      final secondPoint = pointsRaw[door.secontPointIndex];
+      final secondPoint = pointsRaw[door.secondPointIndex];
 
       final firstPointDoor =
           door.getFirstPointOffset(firstPoint.point, secondPoint.point);
@@ -163,7 +176,7 @@ class WallObject extends MapObjectModel {
         for (var door
             in doors.where((element) => element.firstPointIndex == i)) {
           final firstPoint = pointsRaw[door.firstPointIndex];
-          final secondPoint = pointsRaw[door.secontPointIndex];
+          final secondPoint = pointsRaw[door.secondPointIndex];
 
           final firstPointDoor =
               door.getFirstPointOffset(firstPoint.point, secondPoint.point);
@@ -195,7 +208,7 @@ class WallObject extends MapObjectModel {
       final doorPath = Path();
 
       final firstPoint = pointsRaw[door.firstPointIndex];
-      final secondPoint = pointsRaw[door.secontPointIndex];
+      final secondPoint = pointsRaw[door.secondPointIndex];
 
       final firstPointDoor =
           door.getFirstPointOffset(firstPoint.point, secondPoint.point);

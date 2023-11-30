@@ -1,33 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:indoor_localization_app/helper/map_helper.dart';
 
-
 class DoorModel {
   int firstPointIndex;
-  int secontPointIndex;
+  int secondPointIndex;
 
   double distanceToFirstPoint;
   double distanceToSecondPoint;
 
-  List<int> get pointsIndexes => [firstPointIndex, secontPointIndex];
+  List<int> get pointsIndexes => [firstPointIndex, secondPointIndex];
 
   DoorModel({
     required this.firstPointIndex,
-    required this.secontPointIndex,
+    required this.secondPointIndex,
     required this.distanceToFirstPoint,
     required this.distanceToSecondPoint,
   });
 
   factory DoorModel.fromJson(Map<String, dynamic> json) => DoorModel(
         firstPointIndex: json['firstPointIndex'],
-        secontPointIndex: json['secontPointIndex'],
-        distanceToFirstPoint: json['distanceToFirstPoint'],
-        distanceToSecondPoint: json['distanceToSecondPoint'],
+        secondPointIndex: json['secontPointIndex'],
+        distanceToFirstPoint:
+            double.parse(json['distanceToFirstPoint'].toString()),
+        distanceToSecondPoint:
+            double.parse(json['distanceToSecondPoint'].toString()),
       );
 
   Map<String, dynamic> toJson() => {
         'firstPointIndex': firstPointIndex,
-        'secontPointIndex': secontPointIndex,
+        'secontPointIndex': secondPointIndex,
         'distanceToFirstPoint': distanceToFirstPoint,
         'distanceToSecondPoint': distanceToSecondPoint,
       };

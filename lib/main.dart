@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:indoor_localization_app/controller/beacon_controller.dart';
+import 'package:flutter_beacon/flutter_beacon.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:indoor_localization_app/controller/data_controller.dart';
+import 'package:indoor_localization_app/controller/permission_controller.dart';
 import 'package:indoor_localization_app/routes.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -39,125 +41,180 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  late StreamSubscription bluetoothState;
-
-  bool bluetoothEnabled = false;
-
-  Future<bool> askForPermissions() async {
-    PermissionStatus permissionStatus = await Permission.bluetooth.status;
-    if (permissionStatus.isDenied) {
-      await Permission.bluetooth.request();
-    }
-
-    permissionStatus = await Permission.bluetoothScan.status;
-
-    if (permissionStatus.isDenied) {
-      await Permission.bluetoothScan.request();
-    }
-
-    permissionStatus = await Permission.bluetoothConnect.status;
-
-    if (permissionStatus.isDenied) {
-      await Permission.bluetoothConnect.request();
-    }
-
-    permissionStatus = await Permission.location.status;
-
-    if (permissionStatus.isDenied) {
-      await Permission.location.request();
-    }
-
-    //check if bluetooth is enabled with FlutterBluePlus.adapterState
-
-    bluetoothState = FlutterBluePlus.adapterState.listen((state) {
-      if (state == BluetoothAdapterState.off) {
-        setState(() {
-          bluetoothEnabled = false;
-        });
-      } else if (state == BluetoothAdapterState.on) {
-        setState(() {
-          bluetoothEnabled = true;
-        });
-      }
-    });
-
-    if (!await Permission.bluetooth.isGranted ||
-        !await Permission.bluetoothScan.isGranted ||
-        !await Permission.location.isGranted) {
-      return false;
-    }
-    return true;
-  }
-
-  late Future _permissionFuture;
-  late BeaconController _beaconController;
-  late Future _beaconFuture;
+  late PermissionController _permissionController;
+  late DataController _dataController;
+  late Future _future;
 
   @override
   void initState() {
     super.initState();
-    _permissionFuture = askForPermissions();
-    _beaconController = BeaconController();
+    _permissionController = PermissionController();
+    _dataController = DataController();
+    _future = init();
+  }
 
-    _beaconFuture = _beaconController.init();
+  Future<void> init() async {
+    await _permissionController.askForPermissions();
+    await flutterBeacon.initializeAndCheckScanning;
+    await _dataController.loadFiles();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: Text(widget.title),
-        ),
-        body: FutureBuilder(
-            future: _permissionFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              }
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => _dataController),
+        ChangeNotifierProvider(create: (context) => _permissionController),
+      ],
+      child: Consumer2<DataController, PermissionController>(
+          builder: (context, dataController, permissionController, child) {
+        return Scaffold(
+            appBar: AppBar(
+              title: Text(widget.title),
+            ),
+            body: FutureBuilder(
+                future: _future,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
 
-              if (snapshot.hasError ||
-                  (!snapshot.hasData && snapshot.data as bool == false)) {
-                return const Center(
-                  child: Text(
-                    'Kérjük engedélyezze a bluetooth és a helymeghatározás használatát az alkalmazás számára!',
-                    textAlign: TextAlign.center,
-                  ),
-                );
-              }
+                  if (snapshot.hasError ||
+                      (!permissionController.permissionsGranted)) {
+                    return const Center(
+                      child: Text(
+                        'Kérjük engedélyezze a bluetooth és a helymeghatározás használatát az alkalmazás számára!',
+                        textAlign: TextAlign.center,
+                      ),
+                    );
+                  }
 
-              if (!bluetoothEnabled) {
-                return const Center(
-                  child: Text(
-                    'Kérjük kapcsolja be a bluetooth-ot!',
-                    textAlign: TextAlign.center,
-                  ),
-                );
-              }
+                  if (!permissionController.bluetoothEnabled) {
+                    return const Center(
+                      child: Text(
+                        'Kérjük kapcsolja be a bluetooth-t!',
+                        textAlign: TextAlign.center,
+                      ),
+                    );
+                  }
 
-              return FutureBuilder(
-                  future: _beaconFuture,
-                  builder: (context, future) {
-                    return SizedBox.expand(
-                      child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
+                  return SizedBox.expand(
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Container(
+                              color: Theme.of(context).primaryColor,
+                              child: TextButton(
+                                child: const Text(
+                                  'Térkép hozzáadása',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                onPressed: () {
+                                  try {
+                                    _dataController.selectFile().then((value) {
+                                      if (value != null) {
+                                        _dataController
+                                            .fileExists(
+                                                value.path.split('/').last)
+                                            .then((exists) {
+                                          if (exists) {
+                                            showDialog(
+                                                    context: context,
+                                                    builder: (context) {
+                                                      //ask if user wants to overwrite the file
+                                                      return AlertDialog(
+                                                        title: const Text(
+                                                            'Fájl felülírása'),
+                                                        content: const Text(
+                                                            'A fájl már létezik, felülírja?'),
+                                                        actions: [
+                                                          TextButton(
+                                                              onPressed: () {
+                                                                Navigator.pop(
+                                                                    context,
+                                                                    false);
+                                                              },
+                                                              child: const Text(
+                                                                'Mégse',
+                                                                style: TextStyle(
+                                                                    color: Colors
+                                                                        .red),
+                                                              )),
+                                                          TextButton(
+                                                              onPressed: () {
+                                                                try {
+                                                                  _dataController
+                                                                      .saveFileToStorage(
+                                                                          value)
+                                                                      .then(
+                                                                          (value) {
+                                                                    _dataController
+                                                                        .loadFiles();
+                                                                  });
+                                                                } catch (e) {
+                                                                  Fluttertoast
+                                                                      .showToast(
+                                                                          msg:
+                                                                              'Hiba történt a fájl betöltése közben!');
+                                                                }
+                                                                Navigator.pop(
+                                                                    context,
+                                                                    true);
+                                                              },
+                                                              child: const Text(
+                                                                'Igen',
+                                                                style: TextStyle(
+                                                                    color: Colors
+                                                                        .green),
+                                                              )),
+                                                        ],
+                                                      );
+                                                    })
+                                                .then((value) => value
+                                                    ? _dataController
+                                                        .saveFileToStorage(
+                                                            value)
+                                                    : null);
+                                          } else {
+                                            _dataController
+                                                .saveFileToStorage(value);
+                                          }
+                                        });
+                                      }
+                                    });
+                                  } catch (e) {
+                                    Fluttertoast.showToast(
+                                        msg:
+                                            'Hiba történt a fájl betöltése közben!');
+                                  }
+                                },
+                              )),
+                          const SizedBox(
+                            height: 20,
+                          ),
+                          for (var map in dataController.files)
                             Container(
                                 color: Theme.of(context).primaryColor,
                                 child: TextButton(
-                                  child: const Text(
-                                    'Térkép',
-                                    style: TextStyle(color: Colors.white),
+                                  child: Text(
+                                    map.path
+                                        .split('/')
+                                        .last
+                                        .replaceAll('.json', ''),
+                                    style: const TextStyle(color: Colors.white),
                                   ),
                                   onPressed: () {
-                                    Navigator.pushNamed(context, '/map');
+                                    Navigator.pushNamed(context, '/map',
+                                        arguments: map.path);
                                   },
                                 )),
-                          ]),
-                    );
-                  });
-            }));
+                        ]),
+                  );
+                }));
+      }),
+    );
   }
 }
