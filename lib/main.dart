@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:indoor_localization_app/controller/beacon_controller.dart';
 import 'package:indoor_localization_app/routes.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -53,6 +55,12 @@ class _MyHomePageState extends State<MyHomePage> {
       await Permission.bluetoothScan.request();
     }
 
+    permissionStatus = await Permission.bluetoothConnect.status;
+
+    if (permissionStatus.isDenied) {
+      await Permission.bluetoothConnect.request();
+    }
+
     permissionStatus = await Permission.location.status;
 
     if (permissionStatus.isDenied) {
@@ -81,13 +89,17 @@ class _MyHomePageState extends State<MyHomePage> {
     return true;
   }
 
-  late Future _future;
+  late Future _permissionFuture;
+  late BeaconController _beaconController;
+  late Future _beaconFuture;
 
   @override
   void initState() {
     super.initState();
+    _permissionFuture = askForPermissions();
+    _beaconController = BeaconController();
 
-    _future = askForPermissions();
+    _beaconFuture = _beaconController.init();
   }
 
   @override
@@ -97,7 +109,7 @@ class _MyHomePageState extends State<MyHomePage> {
           title: Text(widget.title),
         ),
         body: FutureBuilder(
-            future: _future,
+            future: _permissionFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(
@@ -124,24 +136,28 @@ class _MyHomePageState extends State<MyHomePage> {
                 );
               }
 
-              return SizedBox.expand(
-                child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Container(
-                          color: Theme.of(context).primaryColor,
-                          child: TextButton(
-                            child: const Text(
-                              'Map',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            onPressed: () {
-                              Navigator.pushNamed(context, '/map');
-                            },
-                          )),
-                    ]),
-              );
+              return FutureBuilder(
+                  future: _beaconFuture,
+                  builder: (context, future) {
+                    return SizedBox.expand(
+                      child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Container(
+                                color: Theme.of(context).primaryColor,
+                                child: TextButton(
+                                  child: const Text(
+                                    'Térkép',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  onPressed: () {
+                                    Navigator.pushNamed(context, '/map');
+                                  },
+                                )),
+                          ]),
+                    );
+                  });
             }));
   }
 }

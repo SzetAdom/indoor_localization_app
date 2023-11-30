@@ -9,6 +9,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.11.0"
+  beacons_plugin:
+    dependency: "direct main"
+    description:
+      name: beacons_plugin
+      sha256: "77233f9824565510987a5e13d1bcdac0825053054dc63dd7a9146819976ed30a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.8"
   boolean_selector:
     dependency: transitive
     description:
