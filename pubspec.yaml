@@ -46,6 +46,8 @@ dependencies:
   permission_handler: ^11.1.0
   flutter_blue_plus: ^1.29.8
   beacons_plugin: ^2.0.8
+  json_annotation: ^4.8.1
+  file_picker: ^6.1.1
 
 dev_dependencies:
   flutter_test:
@@ -57,6 +59,8 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^2.0.1
+  json_serializable: ^6.7.1
+  build_runner: ^2.4.7
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
