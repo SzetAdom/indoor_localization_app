@@ -32,8 +32,8 @@ class MapController extends ChangeNotifier {
   }
 
   Offset translateFromCanvas(Offset offset) {
-    var horizontalOffset = (canvasSize.width / 2) * zoomLevel;
-    var verticalOffset = (canvasSize.height / 2) * zoomLevel;
+    var horizontalOffset = (map!.width / 2) * zoomLevel;
+    var verticalOffset = (map!.height / 2) * zoomLevel;
 
     return offset.translate(-1 * horizontalOffset, -1 * verticalOffset) /
         zoomLevel;
@@ -44,8 +44,6 @@ class MapController extends ChangeNotifier {
   }
 
   Offset canvasOffset = Offset.zero;
-
-  Size canvasSize = Size.zero;
 
   double gridStep = 1000;
 

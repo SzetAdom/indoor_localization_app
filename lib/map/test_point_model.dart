@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:indoor_localization_app/map/map_object_point_model.dart';
+import 'package:indoor_localization_app/map/map_point_model.dart';
 
-class TestPointModel extends MapObjectPointModel {
-  TestPointModel({
-    required Offset point,
-    required this.id,
-    required this.name,
-  }) : super(
-          point: point,
+class TestPointModel extends MapPointModel {
+  TestPointModel(
+      {required Offset point,
+      required String id,
+      required this.name,
+      Color color = Colors.yellow})
+      : super(
+          id: id,
+          x: point.dx,
+          y: point.dy,
+          color: color,
         );
 
-  String id;
   String name;
 
   factory TestPointModel.fromJson(Map<String, dynamic> json) => TestPointModel(
@@ -22,8 +25,8 @@ class TestPointModel extends MapObjectPointModel {
 
   @override
   Map<String, dynamic> toJson() => {
-        'x': point.dx.toString(),
-        'y': point.dy.toString(),
+        'x': super.x.toString(),
+        'y': super.y.toString(),
         'id': id,
         'name': name,
       };

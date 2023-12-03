@@ -29,8 +29,8 @@ class DoorModel {
   Map<String, dynamic> toJson() => {
         'firstPointIndex': firstPointIndex,
         'secontPointIndex': secondPointIndex,
-        'distanceToFirstPoint': distanceToFirstPoint,
-        'distanceToSecondPoint': distanceToSecondPoint,
+        'distanceToFirstPoint': distanceToFirstPoint.toString(),
+        'distanceToSecondPoint': distanceToSecondPoint.toString(),
       };
 
   Offset getFirstPointOffset(Offset firstPoint, Offset secondPoint) {

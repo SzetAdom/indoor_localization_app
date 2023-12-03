@@ -218,5 +218,12 @@ class MapEditorPainter extends CustomPainter {
     for (final mapObject in map.objects) {
       mapObject.draw(canvas, size, selected: false);
     }
+    for (final testPoint in map.testPoints) {
+      testPoint.draw(canvas, size);
+    }
+
+    for (final beacon in map.beacons) {
+      beacon.draw(canvas, size);
+    }
   }
 }

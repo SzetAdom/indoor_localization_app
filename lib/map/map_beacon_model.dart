@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:indoor_localization_app/map/map_object_point_model.dart';
+import 'package:indoor_localization_app/map/map_point_model.dart';
 
-class MapBeaconModel extends MapObjectPointModel {
+class MapBeaconModel extends MapPointModel {
   String uuid;
   int? major;
   int? minor;
@@ -11,8 +11,12 @@ class MapBeaconModel extends MapObjectPointModel {
     required this.uuid,
     this.major,
     this.minor,
+    Color color = Colors.green,
   }) : super(
-          point: point,
+          id: uuid,
+          x: point.dx,
+          y: point.dy,
+          color: color,
         );
 
   factory MapBeaconModel.fromJson(Map<String, dynamic> json) => MapBeaconModel(
@@ -25,8 +29,8 @@ class MapBeaconModel extends MapObjectPointModel {
 
   @override
   Map<String, dynamic> toJson() => {
-        'x': point.dx.toString(),
-        'y': point.dy.toString(),
+        'x': super.x.toString(),
+        'y': super.y.toString(),
         'uuid': uuid,
         'major': major,
         'minor': minor,

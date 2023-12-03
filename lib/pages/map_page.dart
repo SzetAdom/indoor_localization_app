@@ -84,44 +84,26 @@ class _MapPageState extends State<MapPage> {
                                 child: Transform(
                                   transform: mapController.matrix,
                                   child: Container(
-                                    height: MediaQuery.of(context).size.height,
                                     color: Colors.grey,
-                                    child: ClipRect(
-                                      clipBehavior: Clip.hardEdge,
-                                      child: ConstrainedBox(
-                                        constraints: BoxConstraints(
-                                          maxWidth: mapController.map!.width,
-                                          maxHeight: mapController.map!.height,
-                                        ),
-                                        child: ConstrainedBox(
-                                          constraints: BoxConstraints(
-                                            minWidth: mapController.map!.width,
-                                            minHeight:
-                                                mapController.map!.height,
+                                    child: LayoutBuilder(
+                                        builder: (context, constrains) {
+                                      return SizedBox(
+                                        width: mapController.map!.width,
+                                        height: mapController.map!.height,
+                                        child: CustomPaint(
+                                          painter: MapEditorPainter(
+                                            map: mapController.map!,
+                                            canvasOffset:
+                                                mapController.canvasOffset,
+                                            gridStep: mapController.gridStep,
+                                            zoomLevel: mapController.zoomLevel,
+                                            mapEditPointSize:
+                                                mapController.mapEditPointSize,
+                                            pointSize: mapController.pointSize,
                                           ),
-                                          child: LayoutBuilder(
-                                              builder: (context, constrains) {
-                                            mapController.canvasSize =
-                                                constrains.biggest;
-                                            return CustomPaint(
-                                              painter: MapEditorPainter(
-                                                map: mapController.map!,
-                                                canvasOffset:
-                                                    mapController.canvasOffset,
-                                                gridStep:
-                                                    mapController.gridStep,
-                                                zoomLevel:
-                                                    mapController.zoomLevel,
-                                                mapEditPointSize: mapController
-                                                    .mapEditPointSize,
-                                                pointSize:
-                                                    mapController.pointSize,
-                                              ),
-                                            );
-                                          }),
                                         ),
-                                      ),
-                                    ),
+                                      );
+                                    }),
                                   ),
                                 ),
                               ),
