@@ -117,7 +117,9 @@ class _MyHomePageState extends State<MyHomePage> {
                     );
                   }
 
-                  return SizedBox.expand(
+                  return SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    height: MediaQuery.of(context).size.height,
                     child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -165,12 +167,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                                                 try {
                                                                   _dataController
                                                                       .saveFileToStorage(
-                                                                          value)
-                                                                      .then(
-                                                                          (value) {
-                                                                    _dataController
-                                                                        .loadFiles();
-                                                                  });
+                                                                          value,
+                                                                          fileExists:
+                                                                              true);
                                                                 } catch (e) {
                                                                   Fluttertoast
                                                                       .showToast(
@@ -190,7 +189,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                                         ],
                                                       );
                                                     })
-                                                .then((value) => value
+                                                .then((value1) => value1
                                                     ? _dataController
                                                         .saveFileToStorage(
                                                             value)
@@ -212,22 +211,34 @@ class _MyHomePageState extends State<MyHomePage> {
                           const SizedBox(
                             height: 20,
                           ),
-                          for (var map in dataController.files)
-                            Container(
-                                color: Theme.of(context).primaryColor,
-                                child: TextButton(
-                                  child: Text(
-                                    map.path
-                                        .split('/')
-                                        .last
-                                        .replaceAll('.json', ''),
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                  onPressed: () {
-                                    Navigator.pushNamed(context, '/map',
-                                        arguments: map.path);
-                                  },
-                                )),
+                          if (dataController.files.isNotEmpty)
+                            Expanded(
+                              child: ListView.builder(
+                                  shrinkWrap: true,
+                                  itemCount: dataController.files.length,
+                                  itemBuilder: (context, index) {
+                                    var map = dataController.files[index];
+
+                                    return Container(
+                                        margin: const EdgeInsets.only(
+                                            bottom: 10, left: 10, right: 10),
+                                        color: Theme.of(context).primaryColor,
+                                        child: TextButton(
+                                          child: Text(
+                                            map.path
+                                                .split('/')
+                                                .last
+                                                .replaceAll('.json', ''),
+                                            style: const TextStyle(
+                                                color: Colors.white),
+                                          ),
+                                          onPressed: () {
+                                            Navigator.pushNamed(context, '/map',
+                                                arguments: map.path);
+                                          },
+                                        ));
+                                  }),
+                            )
                         ]),
                   );
                 }));

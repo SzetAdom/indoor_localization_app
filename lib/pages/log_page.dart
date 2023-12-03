@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_logs/flutter_logs.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:indoor_localization_app/controller/beacon_controller.dart';
+import 'package:indoor_localization_app/controller/map_controller.dart';
+import 'package:indoor_localization_app/map/test_point_model.dart';
 import 'package:indoor_localization_app/models/beacon_log_model.dart';
 import 'package:provider/provider.dart';
 
@@ -55,11 +57,14 @@ class _LogPageState extends State<LogPage> {
     var beaconController = Provider.of<BeaconController>(context);
     var beaconControllerAsync =
         Provider.of<BeaconController>(context, listen: false);
+    var mapController = Provider.of<MapController>(context);
 
     var buttonStyle = TextButton.styleFrom(
         foregroundColor: Colors.white,
         backgroundColor: Theme.of(context).primaryColor,
         textStyle: const TextStyle(fontSize: 20));
+
+    var testId = beaconController.testPoint?.id;
 
     return Container(
       color: Colors.white,
@@ -69,9 +74,39 @@ class _LogPageState extends State<LogPage> {
               child: Container(
             child: Column(
               children: [
-                const Text(
-                  'Valós idejű tesztelés',
-                  style: TextStyle(fontSize: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('Teszteset kiválasztása: '),
+                    DropdownButton<String>(
+                      value: beaconController.testPoint?.id == null
+                          ? "Nincs teszteset"
+                          : beaconController.testPoint!.name,
+                      onChanged: (String? newValue) {
+                        TestPointModel? selectedItem;
+                        try {
+                          selectedItem = mapController.map!.testPoints
+                              .firstWhere(
+                                  (element) => element.name == newValue);
+                        } catch (e) {
+                          print(e);
+                        }
+                        beaconControllerAsync.setTestPoint(selectedItem);
+                      },
+                      items: [
+                        "Nincs teszteset",
+                        ...mapController.map!.testPoints
+                            .map((e) => e.name)
+                            .toList(),
+                      ].map<DropdownMenuItem<String>>((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child:
+                              Text(value, style: const TextStyle(fontSize: 20)),
+                        );
+                      }).toList(),
+                    ),
+                  ],
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -80,15 +115,14 @@ class _LogPageState extends State<LogPage> {
                         onPressed: () async {
                           try {
                             await beaconControllerAsync.startRangingAndLogging(
-                              (BeaconLogModel log) {
-                                setState(() {
-                                  realTimeLog.add(log.toSimpleString());
-                                  if (followLogs) {
-                                    _scrollToBottom();
-                                  }
-                                });
-                              },
-                            );
+                                (BeaconLogModel log) {
+                              setState(() {
+                                realTimeLog.add(log.toSimpleString());
+                                if (followLogs) {
+                                  _scrollToBottom();
+                                }
+                              });
+                            }, testId: testId);
                           } catch (e) {
                             print(e);
                           }
@@ -184,15 +218,16 @@ class _LogPageState extends State<LogPage> {
                             setState(() {
                               statistics = statisticsIn;
                             });
-                          }, test: false);
+                          }, test: testId == null ? false : true);
                         },
                         style: buttonStyle,
                         icon: const Icon(Icons.analytics_rounded)),
                     IconButton(
                         onPressed: () async {
                           try {
-                            var res1 = await beaconController
-                                .copyLogsToSaveFolder(test: false);
+                            var res1 =
+                                await beaconController.copyLogsToSaveFolder(
+                                    test: testId == null ? false : true);
 
                             if (res1) {
                               Fluttertoast.showToast(

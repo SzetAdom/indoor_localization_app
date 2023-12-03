@@ -1,15 +1,32 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_beacon/flutter_beacon.dart';
 import 'package:flutter_logs/flutter_logs.dart';
+import 'package:indoor_localization_app/map/map_beacon_model.dart';
+import 'package:indoor_localization_app/map/test_point_model.dart';
 import 'package:indoor_localization_app/models/beacon_log_model.dart';
 import 'package:path_provider/path_provider.dart';
 
 class BeaconController extends ChangeNotifier {
+  TestPointModel? testPoint;
+  Offset? calculatedPosition;
+
+  List<MapBeaconModel> mapBeacons = [];
+
+  void setBeaconLocations(List<MapBeaconModel> mapBeacons) {
+    this.mapBeacons = mapBeacons;
+    notifyListeners();
+  }
+
+  setTestPoint(TestPointModel? testPoint) {
+    this.testPoint = testPoint;
+    notifyListeners();
+  }
+
   var regions = [
     Region(
       identifier: 'com.beacon',
@@ -26,7 +43,7 @@ class BeaconController extends ChangeNotifier {
 
   Future<void> init() async {
     await flutterBeacon.initializeAndCheckScanning;
-    await flutterBeacon.setBetweenScanPeriod(30);
+    await flutterBeacon.setBetweenScanPeriod(100);
   }
 
   Future<void> stopRanging() async {
@@ -35,7 +52,7 @@ class BeaconController extends ChangeNotifier {
 
   Future<void> startRangingAndLogging(Function(BeaconLogModel log) showLog,
       {String? testId}) async {
-    log('Start ranging...');
+    print('Start ranging...');
 
     _streamRanging =
         flutterBeacon.ranging(regions).listen((RangingResult result) {
@@ -154,6 +171,60 @@ class BeaconController extends ChangeNotifier {
     return null;
   }
 
+  Offset? calculatePosition(Map<String, double> beaconDistancess) {
+    if (mapBeacons.length < 3 || beaconDistancess.length < 3) return null;
+
+    try {
+      var beacon1 = mapBeacons[0];
+      var beacon2 = mapBeacons[1];
+      var beacon3 = mapBeacons[2];
+
+      var beacon1distance = beaconDistancess[beacon1.uuid];
+      var beacon2distance = beaconDistancess[beacon2.uuid];
+      var beacon3distance = beaconDistancess[beacon3.uuid];
+
+      var x1 = beacon1.x;
+      var y1 = beacon1.y;
+
+      var x2 = beacon2.x;
+      var y2 = beacon2.y;
+
+      var x3 = beacon3.x;
+      var y3 = beacon3.y;
+
+      var a = 2 * x2 - 2 * x1;
+      var b = 2 * y2 - 2 * y1;
+      var c = pow(beacon1distance!, 2) -
+          pow(beacon2distance!, 2) -
+          pow(x1, 2) +
+          pow(x2, 2) -
+          pow(y1, 2) +
+          pow(y2, 2);
+
+      var d = 2 * x3 - 2 * x2;
+      var e = 2 * y3 - 2 * y2;
+      var f = pow(beacon2distance, 2) -
+          pow(beacon3distance!, 2) -
+          pow(x2, 2) +
+          pow(x3, 2) -
+          pow(y2, 2) +
+          pow(y3, 2);
+
+      var x = (c * e - f * b) / (e * a - b * d);
+
+      var y = (c * d - a * f) / (b * d - a * e);
+
+      return Offset(x, y);
+    } catch (e) {
+      print(e);
+    }
+    return null;
+  }
+
+  double distanceBetweenPoints(Offset point1, Offset point2) {
+    return sqrt(pow(point1.dx - point2.dx, 2) + pow(point1.dy - point2.dy, 2));
+  }
+
   Future<void> calculateStatistics(Function(String analysis) callBack,
       {bool test = false}) async {
     var beacons = await loadLogs(test: test);
@@ -247,7 +318,7 @@ class BeaconController extends ChangeNotifier {
 
       statistics += """$key
           Átlagos: ${sum / rssiChangesAbs.length}, Min: $min, Max: $max
-          Váltosmentes minták aránya: $allZeroCount / ${rssiChangesAbs.length} (${allZeroCount / rssiChangesAbs.length * 100}%)
+          Változásmentes minták aránya: $allZeroCount / ${rssiChangesAbs.length} (${allZeroCount / rssiChangesAbs.length * 100}%)
           Leghosszabb változás nélküli minták száma: $longestZeroCount\n""";
     }
     statistics += '---------------------------------\n';
@@ -260,20 +331,46 @@ class BeaconController extends ChangeNotifier {
       }
     }
     var sum = 0;
-    var min = 10;
-    var max = 0;
     for (var rssiChangeAbs in rssiChangesAbs) {
       sum += rssiChangeAbs;
-      if (rssiChangeAbs < min) {
-        min = rssiChangeAbs;
-      }
-      if (rssiChangeAbs > max) {
-        max = rssiChangeAbs;
-      }
     }
-    statistics += """Átlagos rssi változás (összesen):
-          Átlagos: ${sum / rssiChangesAbs.length}, Min: $min, Max: $max
-          """;
+    statistics +=
+        """Átlagos rssi változás (összesen): ${sum / rssiChangesAbs.length}""";
+
+    statistics += '---------------------------------\n';
+
+    Map<String, double> averageDistanceValueByBeacons = {};
+
+    for (var element in groupedBeaconsList) {
+      var key = element.first.uuid;
+      var sum = 0.0;
+
+      for (var beacon in element) {
+        sum += beacon.accuracy!;
+      }
+
+      var average = sum / element.length * 100;
+
+      averageDistanceValueByBeacons[key] = average;
+    }
+
+    //calculate my position based on the beacons
+    var myPosition = calculatePosition(averageDistanceValueByBeacons);
+    if (myPosition != null) {
+      calculatedPosition = myPosition;
+      notifyListeners();
+
+      statistics += "Számolt pozíció: ${myPosition.dx}, ${myPosition.dy}\n";
+      if (testPoint != null) {
+        //calculate distance between my position and testpoint
+        var distance = distanceBetweenPoints(
+            myPosition, Offset(testPoint!.x, testPoint!.y));
+
+        statistics += "Valós és számolt távolság közti különbség: $distance\n";
+      }
+    } else {
+      statistics += "Pozíció: -\n";
+    }
 
     callBack(statistics);
     print(statistics);

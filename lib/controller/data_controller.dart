@@ -38,11 +38,15 @@ class DataController extends ChangeNotifier {
     return res;
   }
 
-  Future saveFileToStorage(File file) async {
+  Future saveFileToStorage(File file, {bool fileExists = false}) async {
     try {
       var appDir = await getApplicationDocumentsDirectory();
       var newFile = File('${appDir.path}/maps/${file.path.split('/').last}');
+      if (fileExists) {
+        await newFile.delete();
+      }
       await file.copy(newFile.path);
+      await loadFiles();
     } catch (e) {
       Fluttertoast.showToast(msg: 'Valami hiba történt a fájl mentése közben!');
     }

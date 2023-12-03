@@ -32,7 +32,7 @@ class BeaconLogModel {
   }
 
   String get simpleDate {
-    return DateFormat('yyyy-MM-dd – kk:mm').format(time!);
+    return DateFormat('yyyy-MM-dd – kk:mm:ss').format(time!);
   }
 
   String get simpleUUID {

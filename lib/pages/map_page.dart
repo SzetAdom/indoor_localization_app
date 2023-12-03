@@ -70,6 +70,12 @@ class _MapPageState extends State<MapPage> {
                     return const Text('Hiba történt betöltés közben');
                   }
 
+                  if (mapController.map != null &&
+                      beaconController.mapBeacons.isEmpty) {
+                    beaconController
+                        .setBeaconLocations(mapController.map!.beacons);
+                  }
+
                   return Stack(
                     children: [
                       MatrixGestureDetector(
@@ -92,6 +98,8 @@ class _MapPageState extends State<MapPage> {
                                         height: mapController.map!.height,
                                         child: CustomPaint(
                                           painter: MapEditorPainter(
+                                            calculatedOffset: beaconController
+                                                .calculatedPosition,
                                             map: mapController.map!,
                                             canvasOffset:
                                                 mapController.canvasOffset,
@@ -111,12 +119,15 @@ class _MapPageState extends State<MapPage> {
                           ),
                         ),
                       ),
-                      if (showLogPopUp)
-                        SizedBox(
+                      Visibility(
+                        visible: showLogPopUp,
+                        maintainState: true,
+                        child: SizedBox(
                           width: MediaQuery.of(context).size.width,
                           height: MediaQuery.of(context).size.height,
                           child: const LogPage(),
-                        )
+                        ),
+                      )
                     ],
                   );
                 } else {

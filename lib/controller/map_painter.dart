@@ -10,6 +10,7 @@ class MapEditorPainter extends CustomPainter {
   double gridStep;
   MapModel map;
   double zoomLevel;
+  Offset? calculatedOffset;
 
   MapEditorPainter({
     required this.map,
@@ -18,6 +19,7 @@ class MapEditorPainter extends CustomPainter {
     required this.zoomLevel,
     required this.pointSize,
     required this.mapEditPointSize,
+    this.calculatedOffset,
   });
 
   @override
@@ -224,6 +226,10 @@ class MapEditorPainter extends CustomPainter {
 
     for (final beacon in map.beacons) {
       beacon.draw(canvas, size);
+    }
+
+    if (calculatedOffset != null) {
+      _drawPoint(canvas, calculatedOffset!, true);
     }
   }
 }
