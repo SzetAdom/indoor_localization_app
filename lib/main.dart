@@ -1,16 +1,33 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_beacon/flutter_beacon.dart';
+import 'package:flutter_logs/flutter_logs.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:indoor_localization_app/controller/data_controller.dart';
 import 'package:indoor_localization_app/controller/permission_controller.dart';
 import 'package:indoor_localization_app/routes.dart';
 import 'package:provider/provider.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  //Initialize Logging
+  await FlutterLogs.initLogs(
+      logLevelsEnabled: [
+        LogLevel.INFO,
+        LogLevel.WARNING,
+        LogLevel.ERROR,
+        LogLevel.SEVERE
+      ],
+      timeStampFormat: TimeStampFormat.TIME_FORMAT_24_FULL,
+      directoryStructure: DirectoryStructure.SINGLE_FILE_FOR_DAY,
+      logTypesEnabled: ["test_point", "real_time"],
+      logFileExtension: LogFileExtension.LOG,
+      logsWriteDirectoryName: "MyLogs",
+      logsExportDirectoryName: "Exported",
+      debugFileOperations: true,
+      isDebuggable: true);
 
   runApp(const MyApp());
 }

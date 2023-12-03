@@ -20,7 +20,7 @@ class MapObjectModel implements MapObjectInterface {
   String? icon;
   String? description;
   MapObjectType type;
-  // List<MapObjectPointModel> points;
+  // List<MapObjectPointModel> points;  
   List<MapObjectPointModel> pointsRaw = [];
 
 

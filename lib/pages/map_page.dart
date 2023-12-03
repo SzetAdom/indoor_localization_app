@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:indoor_localization_app/controller/beacon_controller.dart';
 import 'package:indoor_localization_app/controller/map_controller.dart';
 import 'package:indoor_localization_app/controller/map_painter.dart';
+import 'package:indoor_localization_app/pages/log_page.dart';
 import 'package:matrix_gesture_detector/matrix_gesture_detector.dart';
 import 'package:provider/provider.dart';
 
@@ -14,88 +16,126 @@ class MapPage extends StatefulWidget {
 }
 
 class _MapPageState extends State<MapPage> {
-  late MapController controller;
+  late MapController mapController;
+  late BeaconController beaconController;
 
   late Future<bool> future;
 
   @override
   void initState() {
     super.initState();
-    controller = MapController();
+    mapController = MapController();
+    beaconController = BeaconController();
+  }
+
+  bool showLogPopUp = false;
+
+  Future<void> init() async {
+    await beaconController.init();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (controller.map == null) {
+    if (mapController.map == null) {
       var args = ModalRoute.of(context)!.settings.arguments as String;
-      future = controller.loadMap(args);
+      future = mapController.loadMap(args);
     }
-    return ChangeNotifierProvider<MapController>(
-      create: (context) => controller,
-      child: Consumer<MapController>(builder: (context, value, child) {
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<MapController>(
+          create: (context) => mapController,
+        ),
+        ChangeNotifierProvider(create: (context) => beaconController),
+      ],
+      child: Consumer2<MapController, BeaconController>(
+          builder: (context, mapController, beaconController, child) {
         return Scaffold(
           appBar: AppBar(
             elevation: 10,
+            actions: [
+              IconButton(
+                  onPressed: () {
+                    setState(() {
+                      showLogPopUp = !showLogPopUp;
+                    });
+                  },
+                  icon: const Icon(Icons.list))
+            ],
           ),
           body: FutureBuilder(
               future: future,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.done) {
-                  if (controller.map == null) {
+                  if (mapController.map == null) {
                     return const Text('Hiba történt betöltés közben');
                   }
-                  return MatrixGestureDetector(
-                    onMatrixUpdate: (m, tm, sm, rm) {
-                      controller.onMatrixUpdate(m, tm, sm, rm);
-                    },
-                    child: Container(
-                      color: Colors.blueGrey,
-                      child: Column(
-                        children: [
-                          Expanded(
-                            child: Transform(
-                              transform: controller.matrix,
-                              child: Container(
-                                height: MediaQuery.of(context).size.height,
-                                color: Colors.grey,
-                                child: ClipRect(
-                                  clipBehavior: Clip.hardEdge,
-                                  child: ConstrainedBox(
-                                    constraints: BoxConstraints(
-                                      maxWidth: controller.map!.width,
-                                      maxHeight: controller.map!.height,
-                                    ),
-                                    child: ConstrainedBox(
-                                      constraints: BoxConstraints(
-                                        minWidth: controller.map!.width,
-                                        minHeight: controller.map!.height,
-                                      ),
-                                      child: LayoutBuilder(
-                                          builder: (context, constrains) {
-                                        controller.canvasSize =
-                                            constrains.biggest;
-                                        return CustomPaint(
-                                          painter: MapEditorPainter(
-                                            map: controller.map!,
-                                            canvasOffset:
-                                                controller.canvasOffset,
-                                            gridStep: controller.gridStep,
-                                            zoomLevel: controller.zoomLevel,
-                                            mapEditPointSize:
-                                                controller.mapEditPointSize,
-                                            pointSize: controller.pointSize,
+
+                  return Stack(
+                    children: [
+                      MatrixGestureDetector(
+                        onMatrixUpdate: (m, tm, sm, rm) {
+                          mapController.onMatrixUpdate(m, tm, sm, rm);
+                        },
+                        child: Container(
+                          color: Colors.blueGrey,
+                          child: Column(
+                            children: [
+                              Expanded(
+                                child: Transform(
+                                  transform: mapController.matrix,
+                                  child: Container(
+                                    height: MediaQuery.of(context).size.height,
+                                    color: Colors.grey,
+                                    child: ClipRect(
+                                      clipBehavior: Clip.hardEdge,
+                                      child: ConstrainedBox(
+                                        constraints: BoxConstraints(
+                                          maxWidth: mapController.map!.width,
+                                          maxHeight: mapController.map!.height,
+                                        ),
+                                        child: ConstrainedBox(
+                                          constraints: BoxConstraints(
+                                            minWidth: mapController.map!.width,
+                                            minHeight:
+                                                mapController.map!.height,
                                           ),
-                                        );
-                                      }),
+                                          child: LayoutBuilder(
+                                              builder: (context, constrains) {
+                                            mapController.canvasSize =
+                                                constrains.biggest;
+                                            return CustomPaint(
+                                              painter: MapEditorPainter(
+                                                map: mapController.map!,
+                                                canvasOffset:
+                                                    mapController.canvasOffset,
+                                                gridStep:
+                                                    mapController.gridStep,
+                                                zoomLevel:
+                                                    mapController.zoomLevel,
+                                                mapEditPointSize: mapController
+                                                    .mapEditPointSize,
+                                                pointSize:
+                                                    mapController.pointSize,
+                                              ),
+                                            );
+                                          }),
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
-                    ),
+                      if (showLogPopUp)
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width,
+                          height: MediaQuery.of(context).size.height,
+                          child: const LogPage(),
+                        )
+                    ],
                   );
                 } else {
                   return const Center(

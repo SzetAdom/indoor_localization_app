@@ -2,7 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_logs/flutter_logs.dart';
 import 'package:indoor_localization_app/map/map_model.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:vector_math/vector_math_64.dart' as vector;
 
 class MapController extends ChangeNotifier {
@@ -62,5 +64,28 @@ class MapController extends ChangeNotifier {
     matrix = m;
 
     notifyListeners();
+  }
+
+  void logTestData(String data) {
+    FlutterLogs.logToFile(
+        logFileName: "test_point", logMessage: data, overwrite: false);
+  }
+
+  void logRealData(String data) {
+    FlutterLogs.logToFile(
+        logFileName: "test_point", logMessage: data, overwrite: false);
+  }
+
+  Future<bool> copyLogsToSaveFolder() async {
+    try {
+      var appDir = await getExternalStorageDirectory();
+      var path = "${appDir!.path}/MyLogs/Logs/device.txt";
+      File file = File(path);
+      var newPath = "/storage/emulated/0/Download/data.txt";
+      await file.copy(newPath);
+    } catch (e) {
+      return false;
+    }
+    return true;
   }
 }
