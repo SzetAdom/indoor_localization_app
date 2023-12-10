@@ -53,17 +53,3 @@ class RSSIKalmanFilter {
   }
 }
 
-
-  // // Example usage for filtering RSSI data
-  // final RSSIKalmanFilter rssiKalmanFilter = RSSIKalmanFilter();
-
-  // // Simulated RSSI measurements with noise
-  // final List<double> rssiMeasurements = [-50, -52, -48, -55, -53];
-
-  // // Filter the RSSI data
-  // final List<double> filteredRSSI =
-  //     rssiKalmanFilter.filterRSSI(rssiMeasurements);
-
-  // // Display the filtered RSSI data
-  // print("Original RSSI Measurements: $rssiMeasurements");
-  // print("Filtered RSSI Data: $filteredRSSI");

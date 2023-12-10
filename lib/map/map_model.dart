@@ -88,6 +88,4 @@ class MapModel {
   double get heightTop => baseHeight / 2 + extraHeightTop;
   double get heightBottom => baseHeight / 2 + extraHeightBottom;
 
-//starting point
-//list of objects
 }

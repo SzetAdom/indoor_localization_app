@@ -58,15 +58,6 @@ class WallObject extends MapObjectModel {
       drawDoorEditPoints(canvas, size);
     }
 
-    // //draw center
-    // final center = getCenter();
-
-    // final centerPaint = Paint()
-    //   ..color = Colors.red
-    //   ..strokeWidth = 10
-    //   ..strokeCap = StrokeCap.round;
-
-    // canvas.drawPoints(PointMode.points, [center], centerPaint);
   }
 
   void fillBackground(Canvas canvas, Size size) {
