@@ -18,11 +18,11 @@ class LogPage extends StatefulWidget {
 
 class _LogPageState extends State<LogPage> {
   List<String> realTimeLog = [];
+  List<BeaconLogModel> logs = [];
 
   ScrollController? _scrollController;
 
   String statistics = '';
-
   @override
   void initState() {
     super.initState();
@@ -38,6 +38,7 @@ class _LogPageState extends State<LogPage> {
   }
 
   bool showLogs = false;
+  bool useKalman = false;
   bool followLogs = true;
 
   void switchShowLogs() {
@@ -118,6 +119,7 @@ class _LogPageState extends State<LogPage> {
                                 (BeaconLogModel log) {
                               setState(() {
                                 realTimeLog.add(log.toSimpleString());
+                                logs.add(log);
                                 if (followLogs) {
                                   _scrollToBottom();
                                 }
@@ -145,6 +147,7 @@ class _LogPageState extends State<LogPage> {
                           FlutterLogs.clearLogs();
                           setState(() {
                             realTimeLog.clear();
+                            logs.clear();
                             statistics = '';
                           });
                         },
@@ -161,6 +164,20 @@ class _LogPageState extends State<LogPage> {
                         value: showLogs,
                         onChanged: (value) {
                           switchShowLogs();
+                        })
+                  ],
+                ),
+                //show logs switch button
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('Kálmán filter alkalmazása'),
+                    Switch(
+                        value: useKalman,
+                        onChanged: (value) {
+                          setState(() {
+                            useKalman = value;
+                          });
                         })
                   ],
                 ),
@@ -207,6 +224,7 @@ class _LogPageState extends State<LogPage> {
                       )
                     ],
                   )),
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -218,10 +236,42 @@ class _LogPageState extends State<LogPage> {
                             setState(() {
                               statistics = statisticsIn;
                             });
-                          }, test: testId == null ? false : true);
+                          },
+                              test: testId == null ? false : true,
+                              logs: logs,
+                              useKalmanFilter: useKalman);
                         },
                         style: buttonStyle,
                         icon: const Icon(Icons.analytics_rounded)),
+                    //load logs from file
+                    IconButton(
+                        onPressed: () async {
+                          try {
+                            var res = await beaconController.loadLogsFromFile(
+                                (BeaconLogModel log) {
+                              setState(() {
+                                realTimeLog.add(log.toSimpleString());
+                                logs.add(log);
+                                if (followLogs) {
+                                  _scrollToBottom();
+                                }
+                              });
+                            }, test: testId == null ? false : true);
+
+                            if (res) {
+                              Fluttertoast.showToast(
+                                  msg: 'Log sikeresen betöltve');
+                            } else {
+                              Fluttertoast.showToast(
+                                  msg: 'A log betöltése sikertelen');
+                            }
+                          } catch (e) {
+                            print(e);
+                          }
+                        },
+                        style: buttonStyle,
+                        icon: const Icon(Icons.upload_rounded)),
+                    //save logs to file
                     IconButton(
                         onPressed: () async {
                           try {
@@ -238,15 +288,6 @@ class _LogPageState extends State<LogPage> {
                                   msg: 'A logok átmásolása sikertelen');
                             }
 
-                            if (statistics.isEmpty) {
-                              await beaconController.calculateStatistics((
-                                String statisticsIn,
-                              ) {
-                                setState(() {
-                                  statistics = statisticsIn;
-                                });
-                              }, test: false);
-                            }
                             var res2 = await beaconController
                                 .createStatistics(statistics);
                             if (res2) {

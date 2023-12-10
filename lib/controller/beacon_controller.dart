@@ -6,9 +6,11 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_beacon/flutter_beacon.dart';
 import 'package:flutter_logs/flutter_logs.dart';
+import 'package:indoor_localization_app/controller/data_controller.dart';
 import 'package:indoor_localization_app/map/map_beacon_model.dart';
 import 'package:indoor_localization_app/map/test_point_model.dart';
 import 'package:indoor_localization_app/models/beacon_log_model.dart';
+import 'package:indoor_localization_app/models/kalman_filter.dart';
 import 'package:path_provider/path_provider.dart';
 
 class BeaconController extends ChangeNotifier {
@@ -50,6 +52,51 @@ class BeaconController extends ChangeNotifier {
     _streamRanging?.cancel();
   }
 
+  // double calculateDistance(double txPower, double rssi,
+  //     {double frequency = 2.4e9}) {
+  //   // Reference distance (1 meter)
+  //   double d0 = 1.0;
+
+  //   // Free Space Path Loss calculation
+  //   double fspl =
+  //       20 * log(frequency) + 20 * log(d0) + 20 * log(4 * pi / 299792458);
+
+  //   // Calculate distance using the Friis transmission equation
+  //   double calculatedDistance =
+  //       pow(10, ((txPower - rssi - fspl) / 20)).toDouble();
+
+  //   return calculatedDistance * 100;
+  // }
+
+  double calculateDistance(double txPower, double rssi,
+      {double frequency = 2.4e9,
+      double txAntennaGain = 5.0,
+      double txAntennaLoss = 2.0,
+      double rxAntennaGain = 3.0,
+      double rxAntennaLoss = 1.0}) {
+    // Reference distance (1 meter) in centimeters
+    double d0 = 100.0;
+
+    // Free Space Path Loss calculation
+    double fspl =
+        20 * log(d0) + 20 * log(frequency) + 20 * log(4 * pi / 299792458);
+
+    // Calculate distance in centimeters using the extended Friis transmission equation
+    double calculatedDistance = pow(
+            10,
+            ((txPower +
+                    txAntennaGain -
+                    txAntennaLoss -
+                    rssi -
+                    fspl +
+                    rxAntennaGain -
+                    rxAntennaLoss) /
+                20)) *
+        d0;
+
+    return calculatedDistance * 100;
+  }
+
   Future<void> startRangingAndLogging(Function(BeaconLogModel log) showLog,
       {String? testId}) async {
     print('Start ranging...');
@@ -68,6 +115,8 @@ class BeaconController extends ChangeNotifier {
               rssi: beacon.rssi,
               txPower: beacon.txPower,
               accuracy: beacon.accuracy,
+              // accuracy: calculateDistance(
+              //     beacon.txPower!.toDouble(), beacon.rssi.toDouble()),
               testId: testId,
               time: dateTime,
             );
@@ -101,7 +150,6 @@ class BeaconController extends ChangeNotifier {
       var path = "${appDir!.path}/MyLogs/Logs/";
       Directory directory = Directory(path);
       var newPath = "/storage/emulated/0/Download/log/";
-      Directory newDirectory = Directory(newPath);
       if (!await directory.exists()) {
         await directory.create();
       }
@@ -126,6 +174,30 @@ class BeaconController extends ChangeNotifier {
       return false;
     }
     return true;
+  }
+
+  Future<bool> loadLogsFromFile(Function(BeaconLogModel log) addBeaconCallback,
+      {bool test = false}) async {
+    try {
+      File? file =
+          await DataController.selectFile(acceptedFiles: ['txt', 'log']);
+
+      if (file == null) return false;
+
+      var lines = await file.readAsLines();
+
+      for (var line in lines) {
+        var json = jsonDecode(line) as Map<String, dynamic>;
+        var beacon = BeaconLogModel.fromJson(json);
+        beacon.accuracy = calculateDistance(
+            beacon.txPower!.toDouble(), beacon.rssi!.toDouble());
+        addBeaconCallback(beacon);
+      }
+      return true;
+    } catch (e) {
+      print(e);
+    }
+    return false;
   }
 
   Future<bool> createStatistics(String analysis) async {
@@ -225,10 +297,63 @@ class BeaconController extends ChangeNotifier {
     return sqrt(pow(point1.dx - point2.dx, 2) + pow(point1.dy - point2.dy, 2));
   }
 
+  List<BeaconLogModel> applyKalmanFilter(List<BeaconLogModel>? logs) {
+    if (logs == null || logs.isEmpty) return [];
+
+    var groupedBeacons = <String, List<BeaconLogModel>>{};
+    for (var beacon in logs) {
+      var key = "${beacon.simpleUUID}-${beacon.major}-${beacon.minor}";
+      if (groupedBeacons.containsKey(key)) {
+        groupedBeacons[key]!.add(beacon);
+      } else {
+        groupedBeacons[key] = [beacon];
+      }
+    }
+
+    var groupedBeaconsList = groupedBeacons.values.toList();
+
+    var filteredBeacons = <BeaconLogModel>[];
+
+    for (var element in groupedBeaconsList) {
+      var key = element.first.uuid;
+      var rssiMeasurements = <double>[];
+      for (var beacon in element) {
+        rssiMeasurements.add(beacon.rssi! * 1.0);
+      }
+
+      // Example usage for filtering RSSI data
+      final RSSIKalmanFilter rssiKalmanFilter = RSSIKalmanFilter();
+
+      // Filter the RSSI data
+      final List<double> filteredRSSI =
+          rssiKalmanFilter.filterRSSI(rssiMeasurements);
+
+      for (var i = 0; i < element.length; i++) {
+        var beacon = element[i];
+        beacon.rssi = filteredRSSI[i].toInt();
+        filteredBeacons.add(beacon);
+      }
+    }
+
+    return filteredBeacons;
+  }
+
   Future<void> calculateStatistics(Function(String analysis) callBack,
-      {bool test = false}) async {
-    var beacons = await loadLogs(test: test);
-    if (beacons == null) return;
+      {bool test = false,
+      List<BeaconLogModel>? logs,
+      bool useKalmanFilter = false}) async {
+    List<BeaconLogModel>? beacons;
+    if (logs == null || logs.isEmpty) {
+      beacons = await loadLogs(test: test);
+    } else {
+      beacons = logs;
+    }
+
+    if (beacons == null || beacons.isEmpty) return;
+
+    if (useKalmanFilter) {
+      beacons = applyKalmanFilter(beacons);
+    }
 
     var groupedBeacons = <String, List<BeaconLogModel>>{};
     for (var beacon in beacons) {
@@ -316,7 +441,8 @@ class BeaconController extends ChangeNotifier {
         }
       }
 
-      statistics += """$key
+      statistics +=
+          """$key
           Átlagos: ${sum / rssiChangesAbs.length}, Min: $min, Max: $max
           Változásmentes minták aránya: $allZeroCount / ${rssiChangesAbs.length} (${allZeroCount / rssiChangesAbs.length * 100}%)
           Leghosszabb változás nélküli minták száma: $longestZeroCount\n""";

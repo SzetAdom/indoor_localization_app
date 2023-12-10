@@ -133,7 +133,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 ),
                                 onPressed: () {
                                   try {
-                                    _dataController.selectFile().then((value) {
+                                    DataController.selectFile().then((value) {
                                       if (value != null) {
                                         _dataController
                                             .fileExists(

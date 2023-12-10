@@ -17,10 +17,11 @@ class DataController extends ChangeNotifier {
   ///
   ///
 
-  Future<File?> selectFile() async {
+  static Future<File?> selectFile(
+      {List<String> acceptedFiles = const ['json']}) async {
     var filePickerResult = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['json'],
+      allowedExtensions: acceptedFiles,
       allowMultiple: false,
     );
 
