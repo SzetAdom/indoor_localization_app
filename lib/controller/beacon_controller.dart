@@ -52,22 +52,6 @@ class BeaconController extends ChangeNotifier {
     _streamRanging?.cancel();
   }
 
-  // double calculateDistance(double txPower, double rssi,
-  //     {double frequency = 2.4e9}) {
-  //   // Reference distance (1 meter)
-  //   double d0 = 1.0;
-
-  //   // Free Space Path Loss calculation
-  //   double fspl =
-  //       20 * log(frequency) + 20 * log(d0) + 20 * log(4 * pi / 299792458);
-
-  //   // Calculate distance using the Friis transmission equation
-  //   double calculatedDistance =
-  //       pow(10, ((txPower - rssi - fspl) / 20)).toDouble();
-
-  //   return calculatedDistance * 100;
-  // }
-
   double calculateDistance(double txPower, double rssi,
       {double frequency = 2.4e9,
       double txAntennaGain = 5.0,
@@ -189,8 +173,8 @@ class BeaconController extends ChangeNotifier {
       for (var line in lines) {
         var json = jsonDecode(line) as Map<String, dynamic>;
         var beacon = BeaconLogModel.fromJson(json);
-        beacon.accuracy = calculateDistance(
-            beacon.txPower!.toDouble(), beacon.rssi!.toDouble());
+        // beacon.accuracy = calculateDistance(
+        //     beacon.txPower!.toDouble(), beacon.rssi!.toDouble());
         addBeaconCallback(beacon);
       }
       return true;

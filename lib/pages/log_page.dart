@@ -228,21 +228,21 @@ class _LogPageState extends State<LogPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    IconButton(
-                        onPressed: () async {
-                          beaconController.calculateStatistics((
-                            String statisticsIn,
-                          ) {
-                            setState(() {
-                              statistics = statisticsIn;
-                            });
-                          },
-                              test: testId == null ? false : true,
-                              logs: logs,
-                              useKalmanFilter: useKalman);
-                        },
-                        style: buttonStyle,
-                        icon: const Icon(Icons.analytics_rounded)),
+                    // IconButton(
+                    //     onPressed: () async {
+                    //       beaconController.calculateStatistics((
+                    //         String statisticsIn,
+                    //       ) {
+                    //         setState(() {
+                    //           statistics = statisticsIn;
+                    //         });
+                    //       },
+                    //           test: testId == null ? false : true,
+                    //           logs: logs,
+                    //           useKalmanFilter: useKalman);
+                    //     },
+                    //     style: buttonStyle,
+                    //     icon: const Icon(Icons.analytics_rounded)),
                     //load logs from file
                     IconButton(
                         onPressed: () async {
