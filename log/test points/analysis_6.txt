@@ -1,0 +1,26 @@
+---------------------------------
+Átlagos beérkező jelek száma másodpercenként (beaconönként):
+25556B57FEEA-64672-10467 - 0.17391304347826086
+25556B57FEEB-4368-62627 - 0.8666666666666667
+25556B57FEEC-4368-62626 - 0.8620689655172413
+---------------------------------
+Átlagos beérkező jelek száma másodpercenként (összesen): 0.634216225220723
+---------------------------------
+Rssi változás (beaconönként):
+25556B57FEEA-64672-10467
+          Átlagos: 1.6666666666666667, Min: 1, Max: 2
+          Változásmentes minták aránya: 0 / 3 (0.0%)
+          Leghosszabb változás nélküli minták száma: 0
+25556B57FEEB-4368-62627
+          Átlagos: 4.04, Min: 0, Max: 11
+          Változásmentes minták aránya: 2 / 25 (8.0%)
+          Leghosszabb változás nélküli minták száma: 1
+25556B57FEEC-4368-62626
+          Átlagos: 2.2083333333333335, Min: 0, Max: 5
+          Változásmentes minták aránya: 6 / 24 (25.0%)
+          Leghosszabb változás nélküli minták száma: 2
+---------------------------------
+Átlagos rssi változás (összesen): 3.0576923076923075
+---------------------------------
+Számolt pozíció: -236.7111299229927, 127.83101189438852
+Valós és számolt távolság közti különbség: 187.16490228342678
